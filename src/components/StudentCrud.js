@@ -2,9 +2,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 const STUDAPI = axios.create({
-  //baseURL: "https://localhost:7297"
-  baseURL: "http://194.87.239.124"
-
+  //baseURL: "https://localhost:7297"  // работает c запущенным локальным сервером
+  //baseURL: "http://localhost:8090"
+  baseURL: "https://e266-94-140-153-169.ngrok-free.app"
+  //baseURL: "https://194.87.239.124"  // https - не работает!
 });
 
 function StudentCrud() {
@@ -12,19 +13,41 @@ function StudentCrud() {
   const [id, setId] = useState("");
   const [stname, setName] = useState("");
   const [course, setCourse] = useState("");
-  const [students, setUsers] = useState([]);
+  const [students, setStudents] = useState([]);
  
   useEffect(() => {
     (async () => await Load())();
   }, []);
- 
+
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+  // useEffect(() => {
+  //   const fetchStudents = async () => {
+  //     try {
+  //       const response = await STUDAPI.get("/api/student/getStudents", {
+  //         headers: {
+  //           'ngrok-skip-browser-warning': 'true'
+  //         }
+  //       });
+  //       console.log('Fetched students:', response.data); // Log the response data
+  //       setStudents(response.data);
+  //     } catch (err) {
+  //       console.error('Error fetching students:', err);
+  //       setError(err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchStudents();
+  // }, []);
+
   async function Load() {
     const headers = {
-      "Content-Type": "application/json"
+      "accept": "text/plain","ngrok-skip-browser-warning": "true"
     };
     //const result = await axios.get("https://localhost:7297/api/Student/GetStudent", { headers } );  // оригинал
-    const result = await STUDAPI.get("/api/Student/GetStudents", { headers } );
-    setUsers(result.data);
+    const result = await STUDAPI.get("/api/student/getStudents", { headers } );
+    setStudents(result.data);
     console.log(result.data);
   }
  
@@ -41,8 +64,6 @@ function StudentCrud() {
           setId("");
           setName("");
           setCourse("");
-       
-     
       Load();
     } catch (err) {
       alert(err);
@@ -51,8 +72,6 @@ function StudentCrud() {
   async function editStudent(students) {
     setName(students.name);
     setCourse(students.course);
-   
- 
     setId(students.id);
   }
  
@@ -85,7 +104,6 @@ function StudentCrud() {
       alert(err);
     }
   }
-
     return (
       <div>
       <h2 align="center">Student Details</h2>
@@ -145,37 +163,39 @@ function StudentCrud() {
             <th scope="col">Option</th>
           </tr>
         </thead>
-        {students.map(function fn(student, index) {
-          return (
-            <tbody>
-              <tr key={student.id}>
-                {/* <th scope="row">{student.id} </th> */}
-                <th scope="row">{index + 1}</th> 
-                <td>{student.name}</td>
-                <td>{student.course}</td>
-                
-                <td>
-                  <button
-                    type="button"
-                    class="btn btn-warning"
-                    onClick={() => editStudent(student)}>Edit</button>&nbsp;&nbsp;
-                  <button
-                    type="button"
-                    class="btn btn-danger"
-                    onClick={() => DeleteStudent(student.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          );
-        })}
+        {Array.isArray(students) && students.length > 0 ? (
+        students.map((student, index) => (
+        <tbody key={student.id}>
+        <tr>
+          {/* <th scope="row">{student.id} </th> */}
+          <th scope="row">{index + 1}</th> 
+          <td>{student.name}</td>
+          <td>{student.course}</td>
+          <td>
+          <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => editStudent(student)}>Edit
+          </button>&nbsp;&nbsp;
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => DeleteStudent(student.id)}>Delete
+          </button>
+          </td>
+        </tr>
+        </tbody>
+      ))) : (
+      <tbody>
+      <tr>
+        <td colSpan="4">No students available</td>
+      </tr>
+      </tbody>
+      )}
       </table>
       </div>
       </div>
-    );
-  }
-  
+    );}
+
   export default StudentCrud;
   
